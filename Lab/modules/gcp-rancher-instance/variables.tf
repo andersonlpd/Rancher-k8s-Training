@@ -52,5 +52,5 @@ variable "pub-ssh-key" {
 variable "deploy_docker" {
   type        = string
   description = "Script de Instalacao do NGINX"
-  default     = "curl https://releases.rancher.com/install-docker/19.03.sh | sh; usermod -aG docker adorigao"
+  default     = "curl https://releases.rancher.com/install-docker/19.03.sh | sh; usermod -aG docker adorigao; docker run -d --name rancher --restart=unless-stopped -v /opt/rancher:/var/lib/rancher -p 80:80 -p 443:443 rancher/rancher:v2.4.3"
 }

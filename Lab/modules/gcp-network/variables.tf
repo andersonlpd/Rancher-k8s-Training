@@ -37,7 +37,7 @@ variable "fw_name_1" {
 variable "fw_proto_1" {
   type        = list(any)
   description = "Protocolos do firewall 1"
-  default     = ["80", "443", "22"]
+  default     = ["80", "443", "22", "2380", "2379", "10250", "6443"]
 }
 
 variable "fw_range_1" {

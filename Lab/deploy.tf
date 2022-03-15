@@ -22,7 +22,7 @@ module "create-instance" {
 
 module "create-instance-2" {
   source            = "./modules/gcp-k8s-instance"
-  name              = "vm-k8s-1"
+  name              = "vm-k8s-2"
   type              = "e2-medium"
   zone              = "us-central1-a"
   image             = "ubuntu-os-cloud/ubuntu-1804-lts"

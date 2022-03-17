@@ -1,11 +1,14 @@
 #! /bin/bash -x
 
-#!/bin/bash -x
+# Generate random password
+passwdfile="/tmp/.pass"
+openssl rand -base64 14 > $passwdfile
+admin_password=$(cat $passwdfile)
 
-admin_password=${1:-password}
-rancher_version=$2
-k8s_version=$3
-domain=$4
+rancher_version=$1
+k8s_version=$2
+domain=$3
+k8s_hosts=$4
 jqimage="stedolan/jq"
 
 # Pulling needed docker images
@@ -31,7 +34,7 @@ done
 RancherContainerID=$(docker ps | grep "rancher/rancher:${rancher_version}" | cut -d " " -f 1)
 DefaultPassword=$(docker logs "$RancherContainerID" 2>&1 | grep "Bootstrap Password:" | sed -n 's/.*: \(.*\)$/\1/p')
 if [ -z "$DefaultPassword" ]; then
-        DefaultPassword="Infra11"
+        DefaultPassword="admin"
 fi
 
 # Get login information
@@ -62,7 +65,7 @@ curl -s 'https://127.0.0.1/v3/settings/server-url' -H 'content-type: application
 ClusterResponse=$(curl -s 'https://127.0.0.1/v3/cluster' -H 'content-type: application/json' -H "Authorization: Bearer $APIToken" --data-binary '{"dockerRootDir":"/var/lib/docker","enableNetworkPolicy":false,"type":"cluster","rancherKubernetesEngineConfig":{"kubernetesVersion":"'$k8s_version'","addonJobTimeout":30,"ignoreDockerVersion":true,"sshAgentAuth":false,"type":"rancherKubernetesEngineConfig","authentication":{"type":"authnConfig","strategy":"x509"},"network":{"options":{"flannelBackendType":"vxlan"},"plugin":"canal","canalNetworkProvider":{"iface":"eth1"}},"ingress":{"type":"ingressConfig","provider":"nginx"},"monitoring":{"type":"monitoringConfig","provider":"metrics-server"},"services":{"type":"rkeConfigServices","kubeApi":{"podSecurityPolicy":false,"type":"kubeAPIService"},"etcd":{"creation":"12h","extraArgs":{"heartbeat-interval":500,"election-timeout":5000},"retention":"72h","snapshot":false,"type":"etcdService","backupConfig":{"enabled":true,"intervalHours":12,"retention":6,"type":"backupConfig"}}}},"localClusterAuthEndpoint":{"enabled":true,"type":"localClusterAuthEndpoint"},"name":"quickstart"}' --insecure)
 
 # Extract clusterid
-ClusterID=`echo $ClusterResponse | docker run --rm -i $jqimage -r .id`
+ClusterID=$(echo $ClusterResponse | docker run --rm -i $jqimage -r .id)
 
 while true; do
         curl -sLk https://127.0.0.1/ping && break
@@ -70,6 +73,11 @@ while true; do
 done
 
 # Generate registration token
-curl -s 'https://127.0.0.1/v3/clusterregistrationtoken' -H 'content-type: application/json' -H "Authorization: Bearer $APIToken" --data-binary '{"type":"clusterRegistrationToken","clusterId":"'$ClusterID'"}' --insecure
+RegistrationCommand=$(curl -s 'https://127.0.0.1/v3/clusterregistrationtoken' -H 'content-type: application/json' -H "Authorization: Bearer $APIToken" --data-binary '{"type":"clusterRegistrationToken","clusterId":"'$ClusterID'"}' --insecure | docker run --rm -i $jqimage -r .nodeCommand)
 
-# Need to add --etcd --controlplane --worker at the end of the registration token to make it work properly
+RegistrationCommandComplete="${RegistrationCommand} --etcd --controlplane --worker"
+
+# Installing kubernetes using Rancher registration command
+for x in ${k8s_hosts//,/ }; do 
+        ssh -i ~/.ssh/id_rsa adorigao@$x "${RegistrationCommandComplete}"; 
+done

@@ -16,8 +16,27 @@ resource "google_compute_instance" "vm" {
   }
 
   metadata = {
-    ssh-keys = var.pub-ssh-key
+    ssh-keys = "adorigao:${file(var.key-file)}"
   }
 
   metadata_startup_script = var.deploy_docker
+
+  //Rancher deploy
+  provisioner "file" {
+    source      = "../scripts/rancher_deploy.sh"
+    destination = "/tmp/rancher_deploy.sh"
+  }
+
+  provisioner "file" {
+    source      = "../ssh/id_rsa"
+    destination = "~/.ssh/id_rsa"
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "chmod +x /tmp/rancher_deploy.sh",
+      "sudo /tmp/rancher_deploy.sh",
+    ]
+  }
+
 }

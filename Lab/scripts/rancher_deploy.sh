@@ -79,5 +79,5 @@ RegistrationCommandComplete="${RegistrationCommand} --etcd --controlplane --work
 
 # Installing kubernetes using Rancher registration command
 for x in ${k8s_hosts//,/ }; do 
-        ssh -i ~/.ssh/id_rsa adorigao@$x "${RegistrationCommandComplete}"; 
+        ssh -o StrictHostKeychecking=no -i ~/.ssh/id_rsa adorigao@$x "${RegistrationCommandComplete}"; 
 done

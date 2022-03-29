@@ -23,20 +23,20 @@ resource "google_compute_instance" "vm" {
 
   //Rancher deploy
   provisioner "file" {
-    source      = "../scripts/rancher_deploy.sh"
+    source      = "scripts/rancher_deploy.sh"
     destination = "/tmp/rancher_deploy.sh"
   }
 
   provisioner "file" {
-    source      = "../ssh/id_rsa"
-    destination = "~/.ssh/id_rsa"
+    source      = "ssh/adorigao_ssh_key"
+    destination = ".ssh/id_rsa"
   }
 
-  provisioner "remote-exec" {
-    inline = [
-      "chmod +x /tmp/rancher_deploy.sh",
-      "sudo /tmp/rancher_deploy.sh",
-    ]
+  connection {
+    type        = "ssh"
+    user        = "adorigao"
+    private_key = file(var.priv-key-file)
+    host        = google_compute_instance.vm.network_interface[0].access_config[0].nat_ip
   }
 
 }

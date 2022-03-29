@@ -1,9 +1,3 @@
-resource "null_resource" "ssh_key" {
-  provisioner "local-exec" {
-    command = "/usr/bin/ssh-keygen -b 2048 -t rsa -f ./ssh/adorigao_ssh_key -q -N \"\""
-  }
-}
-
 module "create-vpc" {
   source            = "./modules/gcp-network"
   vpc-name          = "vpc-lab-1"
@@ -22,6 +16,7 @@ module "create-k8s-instance-1" {
   image             = "ubuntu-os-cloud/ubuntu-1804-lts"
   network-interface = module.create-vpc.subnet_self_link
   key-file          = "ssh/adorigao_ssh_key.pub"
+  priv-key-file     = "ssh/adorigao_ssh_key"
 }
 
 module "create-k8s-instance-2" {
@@ -32,6 +27,7 @@ module "create-k8s-instance-2" {
   image             = "ubuntu-os-cloud/ubuntu-1804-lts"
   network-interface = module.create-vpc.subnet_self_link
   key-file          = "ssh/adorigao_ssh_key.pub"
+  priv-key-file     = "ssh/adorigao_ssh_key"
 }
 
 module "create-k8s-instance-3" {
@@ -42,6 +38,7 @@ module "create-k8s-instance-3" {
   image             = "ubuntu-os-cloud/ubuntu-1804-lts"
   network-interface = module.create-vpc.subnet_self_link
   key-file          = "ssh/adorigao_ssh_key.pub"
+  priv-key-file     = "ssh/adorigao_ssh_key"
 }
 
 module "create-instance" {
@@ -55,6 +52,7 @@ module "create-instance" {
   domain-name       = module.create-vpc.output_dns_name
   managedzone-name  = module.create-vpc.output_managed_zone
   key-file          = "ssh/adorigao_ssh_key.pub"
+  priv-key-file     = "ssh/adorigao_ssh_key"
 }
 
 //Wildcard recordset

@@ -48,6 +48,11 @@ variable "key-file" {
   description = "Chave SSH pública"
 }
 
+variable "priv-key-file" {
+  type        = string
+  description = "Chave SSH priv"
+}
+
 //variable "pub-ssh-key" {
 //  type        = string
 //  description = "Chave SSH pública"

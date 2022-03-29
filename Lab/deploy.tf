@@ -8,6 +8,39 @@ module "create-vpc" {
   dns_name          = "dorigas"
 }
 
+module "create-k8s-instance-1" {
+  source            = "./modules/gcp-k8s-instance"
+  name              = "vm-k8s-1"
+  type              = "e2-medium"
+  zone              = "us-central1-a"
+  image             = "ubuntu-os-cloud/ubuntu-1804-lts"
+  network-interface = module.create-vpc.subnet_self_link
+  key-file          = "ssh/adorigao_ssh_key.pub"
+  priv-key-file     = "ssh/adorigao_ssh_key"
+}
+
+module "create-k8s-instance-2" {
+  source            = "./modules/gcp-k8s-instance"
+  name              = "vm-k8s-2"
+  type              = "e2-medium"
+  zone              = "us-central1-a"
+  image             = "ubuntu-os-cloud/ubuntu-1804-lts"
+  network-interface = module.create-vpc.subnet_self_link
+  key-file          = "ssh/adorigao_ssh_key.pub"
+  priv-key-file     = "ssh/adorigao_ssh_key"
+}
+
+module "create-k8s-instance-3" {
+  source            = "./modules/gcp-k8s-instance"
+  name              = "vm-k8s-3"
+  type              = "e2-medium"
+  zone              = "us-central1-a"
+  image             = "ubuntu-os-cloud/ubuntu-1804-lts"
+  network-interface = module.create-vpc.subnet_self_link
+  key-file          = "ssh/adorigao_ssh_key.pub"
+  priv-key-file     = "ssh/adorigao_ssh_key"
+}
+
 module "create-instance" {
   source            = "./modules/gcp-rancher-instance"
   name              = "vm-rancher"
@@ -18,33 +51,8 @@ module "create-instance" {
   dns-prefix-name   = "rancher"
   domain-name       = module.create-vpc.output_dns_name
   managedzone-name  = module.create-vpc.output_managed_zone
-}
-
-module "create-instance-2" {
-  source            = "./modules/gcp-k8s-instance"
-  name              = "vm-k8s-2"
-  type              = "e2-medium"
-  zone              = "us-central1-a"
-  image             = "ubuntu-os-cloud/ubuntu-1804-lts"
-  network-interface = module.create-vpc.subnet_self_link
-}
-
-module "create-instance-3" {
-  source            = "./modules/gcp-k8s-instance"
-  name              = "vm-k8s-3"
-  type              = "e2-medium"
-  zone              = "us-central1-a"
-  image             = "ubuntu-os-cloud/ubuntu-1804-lts"
-  network-interface = module.create-vpc.subnet_self_link
-}
-
-module "create-instance-4" {
-  source            = "./modules/gcp-k8s-instance"
-  name              = "vm-k8s-4"
-  type              = "e2-medium"
-  zone              = "us-central1-a"
-  image             = "ubuntu-os-cloud/ubuntu-1804-lts"
-  network-interface = module.create-vpc.subnet_self_link
+  key-file          = "ssh/adorigao_ssh_key.pub"
+  priv-key-file     = "ssh/adorigao_ssh_key"
 }
 
 //Wildcard recordset
@@ -55,8 +63,8 @@ resource "google_dns_record_set" "wildcard" {
 
   managed_zone = module.create-vpc.output_managed_zone
 
-  rrdatas = [module.create-instance-2.output_nat_ip,
-             module.create-instance-3.output_nat_ip,
-             module.create-instance-4.output_nat_ip
+  rrdatas = [module.create-k8s-instance-1.output_nat_ip,
+             module.create-k8s-instance-2.output_nat_ip,
+             module.create-k8s-instance-3.output_nat_ip
             ]
 }
